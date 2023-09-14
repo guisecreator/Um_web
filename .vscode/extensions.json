@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "vue.volar",
+        "golang.go",
+        "orsenkucher.vscode-graphql",
+        "apollographql.vscode-apollo"
+    ]
+  }

@@ -1,5 +1,10 @@
-# Object file
-*.o
+.idea
 
-# Ada Library Information
-*.ali
+#FRONTEND
+frontend/src/gql/types.ts
+frontend/src/gql/graphql.ts
+/frontend/src/gql/*
+
+#BACKEND
+
+backend/graphql/model/models_gen.go

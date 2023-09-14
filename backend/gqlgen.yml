@@ -1,0 +1,37 @@
+schema:
+  - graphql/*.graphql
+
+model:
+  filename: graphql/model/models_gen.go
+  package: model
+
+exec:
+  filename: graphql/generated.go
+  dir: graphql
+  package: graphql
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+
+
+federation:
+  filename: graphql/federation.go
+  package: graphql
+
+# Where should the resolver implementations go?
+resolver:
+  layout: follow-schema
+  dir: graphql
+  package: graphql
+  filename_template: "{name}.resolvers.go"
+
