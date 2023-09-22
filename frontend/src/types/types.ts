@@ -16,5 +16,3 @@ export type UserData = {
   isDelete: boolean
   selected: boolean
 }
-
-

@@ -13,6 +13,8 @@ import (
 	service "github.com/guisecreator/um_backend/proto"
 )
 
+
+//grpc server
 type server struct {
 	service.UnimplementedAddServiceServer
 	db *pgx.Conn

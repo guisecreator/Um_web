@@ -35,7 +35,7 @@
           size="large"
           type="submit"
           variant="elevated"
-          :class="{ 'err2-button': hasError, 'success-button': isSuccess }"
+          :class="{ 'error-button': hasError, 'success-button': isSuccess }"
           >
           {{ hasError ? 'Error' : (isSuccess ? 'Success' : 'Join') }}
           </v-btn>
@@ -95,8 +95,8 @@ const checkServerConnection = async () => {
     await apolloClient.client.query({ query: gql`query { ping }` });
     console.log('Connected to the server');
     serverConnected.value = true;
-  } catch (err2) {
-    console.err2('Server connection err2:', err2);
+  } catch (error) {
+    console.error('Server connection error:', error);
     serverConnected.value = false;
   }
 };
@@ -112,9 +112,9 @@ const onSubmit = () => {
 
   if (!serverConnected.value) {
     const emailError = ref('');
-    emailError.value = 'Server connection err2';
+    emailError.value = 'Server connection error';
     loading.value = false
-    return console.log('Server connection err2');
+    return console.log('Server connection error');
   }
   apolloClient.client
   .mutate<LOGIN_MUTATION>({
@@ -182,7 +182,7 @@ const onReset = () => {
   font-size: 14px;
 }
 
-.err2-button {
+.error-button {
   background-color: red !important;
   color: white !important;
 }

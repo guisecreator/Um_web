@@ -3,24 +3,11 @@
     <div class="d-flex justify-center" style="height: 90vh;">
       <div class="text-subtitle-2"></div>
       <v-card  theme="dark" width="1000" height="700">
-        <v-progress-linear
-        v-show="loading"
-        :active="loading"
-        :indeterminate="loading"
-        absolute
-        bottom
-        color="deep-purple-accent-4"
-      ></v-progress-linear>
+        <v-progress-linear v-show="loading" :active="loading" :indeterminate="loading" absolute bottom color="deep-purple-accent-4"/>
         <div class="text-h5 my-234 text-center">Control Panel</div>
         <v-card-actions class="justify-end">
           <br />
-          <v-btn
-            color="primary"
-            size="small"
-            type="submit"
-            class="mr-2 mr-auto "
-            variant="elevated"
-            icon="mdi-checkbox-multiple-marked"
+          <v-btn color="primary" size="small" type="submit" class="mr-2 mr-auto" variant="elevated" icon="mdi-checkbox-multiple-marked"
             @click="toggleCheckboxes"
           ></v-btn>
           <v-btn
@@ -37,12 +24,7 @@
           <SaveButton v-model:saveData="rows" @update:saveData="onSaved"></SaveButton>
           <v-dialog v-model="createDialog" persistent width="1024">
             <template v-slot:activator="{ props }">
-                <v-btn
-                color="success"
-                size="small"
-                type="submit"
-                variant="elevated"
-                icon="mdi-plus"
+                <v-btn color="success" size="small" type="submit" variant="elevated" icon="mdi-plus"
                 @click="createDialog = true"
                 v-bind="props"
               ></v-btn>
@@ -58,82 +40,30 @@
               <v-container>
                 <v-row>
                   <v-col cols="12">
+                    <v-text-field v-model="nameInputValue" label="Login*" required color="grey" hide-details="auto"/>
                   </v-col>
-
                   <v-col cols="12">
-                  <v-text-field
-                        label="Login*"
-                        required
-                        v-model="newRow.fields.name.value"
-                        color="grey"
-                        hide-details="auto"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12">
-                      </v-col>
-                      <v-col cols="12">
-                  <v-text-field
-                        label="Email*"
-                        required
-                        :rules="emailRules"
-                        v-model="newRow.fields.email.value"
-                        color="grey"
-                        hide-details="auto"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12">
-                      </v-col>
-                      <v-col cols="12">
-                      <v-select
-                        v-model="newRow.fields.role.value"
-                        :items="Object.values(Role as any)"
-                        label="Role*"
-                        required
-                      ></v-select>
-                      </v-col>
-
+                    <v-text-field v-model="emailInputValue" label="Email*" required :rules="emailRules" color="grey" hide-details="auto"/>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-select v-model="selectRoleValue" :items="Object.values(Role as any)" label="Role*" required/>
+                  </v-col>
                 </v-row>
               </v-container>
               <small>*indicates required field</small>
             </v-card-text>
-            <v-spacer></v-spacer>
             <v-card-actions class="d-flex justify-center">
               <v-col cols="12" sm="6" md="4">
-                <v-btn
-                block rounded="xl"
-                variant="outlined"
-                color="success"
-                role="link"
-                type="submit"
-                @click="createUser"
-                >Create
-              </v-btn>
+                <v-btn block rounded="xl" variant="outlined" color="success" role="link" type="submit"
+                @click="createUser">Create</v-btn>
             </v-col>
           </v-card-actions>
         </v-card>
         </v-dialog>
-        <v-btn
-        color="grey"
-        size="small"
-        type="submit"
-        variant="elevated"
-        icon="mdi-cog"
-        role="link"
-        dark
-        @click="navigateToSettings"
-        >
-      </v-btn>
+        <v-btn color="grey" size="small" type="submit" variant="elevated" icon="mdi-cog" role="link" dark
+        @click="navigateToSettings"/>
     </v-card-actions>
-    <v-table
-    height="550px"
-    class ="table1"
-    bordered
-    title="Пользователи"
-    :columns="columns"
-    :rows="rows"
-    table-class="table"
-    :loading="loading"
-     >
+    <v-table height="550px" class ="table1" bordered title="Пользователи" :columns="columns" :rows="rows" table-class="table" :loading="loading">
     <thead>
       <tr>
         <th class="text-left">Email</th>
@@ -148,17 +78,8 @@
         <td>
           <v-dialog v-model="editDialog" persistent width="1024">
               <template v-slot:activator="{ props }">
-                <v-btn
-                color="grey"
-                size="small"
-                type="submit"
-                variant="elevated"
-                icon="mdi-pencil"
-                role="link"
-                dark
-                @click="editUserData()"
-                >Edit
-              </v-btn>
+                <v-btn color="grey" size="small" type="submit" variant="elevated" icon="mdi-pencil" role="link" dark
+                @click="editUserData()">Edit</v-btn>
             </template>
             <v-card>
               <v-card-title class="d-flex">
@@ -170,66 +91,26 @@
               <v-card-text>
                 <v-container>
                   <v-row>
-
-                    <v-col cols="12">
-                  <v-text-field
-                        label="Login*"
-                        required
-                        v-model="newRow.fields.name.value"
-                        color="grey"
-                        hide-details="auto"
-                        ></v-text-field>
+                    <!-- <v-col cols="12">
+                  <v-text-field label="Login*" required v-model="newRow.fields.name.value" color="grey" hide-details="auto"/>
                       </v-col>
                       <v-col cols="12">
+                  <v-text-field label="Email*" required :rules="emailRules" v-model="newRow.fields.email.value" color="grey"
+                        hide-details="auto"></v-text-field>
                       </v-col>
                       <v-col cols="12">
-                  <v-text-field
-                        label="Email*"
-                        required
-                        :rules="emailRules"
-                        v-model="newRow.fields.email.value"
-                        color="grey"
-                        hide-details="auto"
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12">
-                      </v-col>
-                      <v-col cols="12">
-                      <v-select
-                        v-model="newRow.fields.role.value"
-                        :items="Object.values(Role as any)"
-                        label="Role*"
-                        required
-                      ></v-select>
-                      </v-col>
-
-                  <v-col cols="12">
-                  </v-col>
+                      <v-select v-model="newRow.fields.role.value" :items="Object.values(Role as any)" label="Role*" required />
+                      </v-col> -->
                 </v-row>
               </v-container>
             </v-card-text>
             <v-spacer></v-spacer>
             <v-card-actions class="d-flex justify-center">
               <v-col cols="12" sm="6" md="4">
-              <v-btn
-                color="red"
-                block rounded="xl"
-                variant="outlined"
-                role="link"
-                type="submit"
-                @click="deleteUser"
-                >Delete User
-              </v-btn>
+              <v-btn color="red" block rounded="xl" variant="outlined" role="link" type="submit" @click="deleteUser">Delete User</v-btn>
             </v-col>
               <v-col cols="12" sm="6" md="4">
-                <v-btn
-                color="success"
-                block rounded="xl"
-                variant="outlined"
-                role="link"
-                type="submit"
-                >Save
-              </v-btn>
+                <v-btn color="success" block rounded="xl" variant="outlined" role="link" type="submit">Save</v-btn>
               </v-col>
             </v-card-actions>
           </v-card>
@@ -270,20 +151,6 @@ const columns: Ref<UserDataFields[]> = ref([]);
 
 // const roleValues: Role[] = Object.values<Role>(Role) as Role[];
 const rows = ref<UserData[]>([])
-// const rows = ref<UserData[]>([
-//   {
-//     id: '',
-//     fields: {
-//       name: { oldValue: '', value: '' },
-//       email: { oldValue: '', value: '' },
-//       role: { oldValue: Role.USER, value: Role.USER },
-//     },
-//     isNew: false,
-//     isDelete: false,
-//     selected: false,
-//   },
-// ]);
-// const row = rows.value[0];
 
 const router = useRouter();
 router.beforeEach((to, from, next) => {
@@ -372,40 +239,43 @@ async function refreshUserData() {
   }
 }
 
-let newRow: UserData = {
-  id: '',
-  fields: {
-    name: { oldValue: '', value: '' },
-    email: { oldValue: '', value: '' },
-    role: { oldValue: Role.USER, value: Role.USER },
-  },
-  isNew: false,
-  isDelete: false,
-  selected: false,
-};
+const nameInputValue = ref('');
+const emailInputValue = ref('');
+const selectRoleValue = ref('');
 
-//fix: deleting newly entered values ​​from fields
+function createNewUser() {
+  return {
+    id: '',
+    fields: {
+      name: {
+        oldValue: '',
+      value: nameInputValue.value,
+    },
+      email: {
+        oldValue: '',
+        value: emailInputValue.value,
+      },
+      role: {
+        oldValue: Role.USER,
+        value: selectRoleValue.value,
+       },
+    },
+    isNew: true,
+    isDelete: false,
+    selected: false,
+  };
+}
+
 function createUser() {
   try {
     loading.value = true;
-    const row = rows.value[0];
-    if (row && row.fields) {
-      console.log(row.fields);
-    } else {
-      console.err2("row or row.fields is undefined");
-    }
 
-    const NewUser = {
-      id: '',
-      fields: {
-        name: { oldValue: '', value: newRow.fields.name.value },
-        email: { oldValue: '', value: newRow.fields.email.value },
-        role: { oldValue: Role.USER, value: newRow.fields.role.value },
-      },
-      isNew: true,
-      isDelete: false,
-      selected: false,
-    };
+    const nameValue = nameInputValue.value;
+    const emailValue = emailInputValue.value;
+
+    const NewUser = createNewUser();
+
+    console.log(NewUser);
 
     const doNotRepeatUser = rows.value.every(
       (user) =>
@@ -418,65 +288,47 @@ function createUser() {
     if (doNotRepeatUser) {
       rows.value.push(NewUser);
     } else {
-      console.err2("User with the same data already exists.");
+      console.error("User with the same data already exists.");
     }
 
-    newRow = {
-      id: '',
-      fields: {
-        name: { oldValue: '', value: '' },
-        email: { oldValue: '', value: '' },
-        role: { oldValue: Role.USER, value: Role.USER },
-      },
-      isNew: false,
-      isDelete: false,
-      selected: false,
-    };
+    emailInputValue.value = '';
+    nameInputValue.value = '';
+    selectRoleValue.value = '';
 
-    // newRow.fields.name.value = '';
-    // newRow.fields.email.value = '';
-    // newRow.fields.role.value = Role.USER;
-    // newRow.isNew = false;
+    if (nameValue === "" || emailValue === "") {
+      rows.value.pop();
+      createDialog.value = false;
+      console.error("error: you can't create a simple user");
+    }
 
     createDialog.value = false;
     loading.value = false;
     return doNotRepeatUser;
-  }
-  catch (e) {
-    console.err2(e);
+
+  } catch (e) {
+    console.error(e);
     loading.value = false;
   }
 }
 
-//TODO: create edit
+//TODO:
 function editUserData() {
   loading.value = true;
   const oldRow = rows.value[0];
 };
 
-//TODO: create save edited user
-// function saveEditedUserData(){
-//   loading.value = true;
-// }
-
-//TODO: create delete
+//TODO:
 function deleteUser() {
   loading.value = true;
-  // if (row.isNew) {
-  //   console.log(row.fields);
-  //   rows.value.splice(rowIndex, 1);
-  // } else {
-  //   row.isDelete = !row.isDelete
-  //   console.err2("row has been deleted");
-  // }
+  const oldRow = rows.value[0];
+
 }
 
 async function deleteSelectedUsers() {
   loading.value = true;
-  const selectedRow = newRow.selected;
+  const selectedRow = rows.value[0].selected;
 
   if (selectedRow) {
-    // rows.value[0].isDelete = !rows.value[0].isDelete
     rows.value = await rows.value.filter((user) => !selectedRow);
     console.log("row has been deleted");
   } else {
@@ -485,13 +337,13 @@ async function deleteSelectedUsers() {
   loading.value = false
 }
 
-function checkNewUserRow(field: UserField<string>, isNew: boolean) {
-  const checkNewUserRow = field.oldValue !== field.value
-  if (checkNewUserRow){
-    console.log(checkNewUserRow);
-    return checkNewUserRow.valueOf()
+function checkNewUser(field: UserField<string>, isNew: boolean) {
+  const checkNewUser = field.oldValue !== field.value
+  if (checkNewUser){
+    console.log(checkNewUser);
+    return checkNewUser.valueOf()
   }
-  const checkOnUserRow = checkNewUserRow
+  const checkOnUserRow = checkNewUser
   && field && field.value
   && field.value !== field.oldValue && !isNew
 
