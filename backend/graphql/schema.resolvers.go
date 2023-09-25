@@ -6,54 +6,147 @@ package graphql
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/guisecreator/um_backend/graphql/model"
+	"github.com/guisecreator/um_web/graphql/model"
+	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/uptrace/bun"
+	"log"
+	"strconv"
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, name string, email string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
+func (r *mutationResolver) CreateUser(ctx context.Context,
+	newUser []*model.NewUser) ([]*model.User, error) {
+	var users = make([]*model.User, 0)
+
+	for userData, _ := range newUser {
+		user := []*model.User{&model.User{
+			Login: newUser[userData].Login,
+			Role:  newUser[userData].Role,
+		}}
+		if user != nil {
+			_ = fmt.Errorf("user not created: %v", users)
+		}
+
+		_, err := r.Db.
+			NewInsert().
+			Model(&users).
+			Returning("*").
+			Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Println("user created")
+
+		users = append(users, user...)
+		if users != nil {
+			return nil, err
+		}
+
+	}
+
+	return users, nil
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, users []*model.UpdateUser) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
+func (r *mutationResolver) UpdateUser(ctx context.Context,
+	userUpdate []*model.UpdateUser) ([]*model.User, error) {
+	var users = make([]*model.User, 0)
+
+	for userData, _ := range userUpdate {
+		user := []*model.User{&model.User{
+			Login: userUpdate[userData].Login,
+			Role:  userUpdate[userData].Role,
+		}}
+		if user != nil {
+			_ = fmt.Errorf("user not created: %v", users)
+		}
+
+		_, err := r.Db.
+			NewUpdate().
+			Model(&users).
+			Returning("*").
+			Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		log.Println("user created")
+
+		users = append(users, user...)
+		if users != nil {
+			return nil, err
+		}
+	}
+	return users, nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, users []string) ([]string, error) {
-	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
-}
+func (r *mutationResolver) DeleteUser(ctx context.Context,
+	userDelete []string) ([]string, error) {
+	db := r.Db.
+		NewDelete().
+		Model(&model.User{}).
+		Where("id IN (?)", userDelete)
 
-// NewUser is the resolver for the newUser field.
-func (r *mutationResolver) NewUser(ctx context.Context, users []*model.NewUser) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: NewUser - newUser"))
-}
+	_, err := db.Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-// Signup is the resolver for the signup field.
-func (r *mutationResolver) Signup(ctx context.Context, name string, email string, password string) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Signup - signup"))
-}
-
-// Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
-	panic(fmt.Errorf("not implemented: Login - login"))
-}
-
-// Logout is the resolver for the logout field.
-func (r *mutationResolver) Logout(ctx context.Context, login string) (*string, error) {
-	panic(fmt.Errorf("not implemented: Logout - logout"))
+	return userDelete, nil
 }
 
 // Validate is the resolver for the validate field.
 func (r *mutationResolver) Validate(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Validate - validate"))
+	user := model.User{}
+
+	sessionKey := authpayload.
+		ForContext(ctx).AuthInfo.Token
+	if sessionKey == "" {
+		return nil, errors.New("access is denied")
+	}
+
+	session, found := r.Sessions.
+		GetSession(sessionKey)
+	if !found {
+		return nil, errors.New("no session for key")
+	}
+
+	if err := session.PrivateKey.Validate(); err != nil {
+		return nil, err
+	}
+
+	Id := strconv.Itoa(len(session.Id))
+
+	user = model.User{
+		ID:   Id,
+		Role: model.Roles(model.RolesUser),
+	}
+
+	return &user, nil
 }
 
-// Me is the resolver for the me field.
+// Me "Me" is the resolver for the "me" field.
 func (r *queryResolver) Me(ctx context.Context, login string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Me - me"))
+	user := model.User{}
+
+	bunIn := bun.In(login)
+	scanDb := r.Db.
+		NewSelect().
+		Model(&user).
+		Where("login = ?",
+			bunIn).
+		Scan(ctx)
+	if scanDb != nil {
+		return nil, scanDb
+	}
+
+	log.Printf("user found: %v\n", user)
+
+	return &user, nil
 }
 
 // Users is the resolver for the users field.

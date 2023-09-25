@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"errors"
-	"github.com/guisecreator/um_backend/graphql/model"
-	"github.com/guisecreator/um_backend/pkg/authpayload"
+	"github.com/guisecreator/um_web/graphql/model"
+	"github.com/guisecreator/um_web/pkg/authpayload"
 	"log"
 	"net/http"
 )

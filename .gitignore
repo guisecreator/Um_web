@@ -6,4 +6,4 @@ frontend/src/gql/graphql.ts
 /frontend/src/gql/*
 
 #BACKEND
-backend/graphql/model/models_gen.go
+

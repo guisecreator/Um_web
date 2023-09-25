@@ -4,13 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/guisecreator/um_backend/pkg/authpayload"
-	"github.com/guisecreator/um_backend/pkg/sessions"
+	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/guisecreator/um_web/pkg/sessions"
 	"github.com/uptrace/bun"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/graph-gophers/dataloader"
-	"github.com/guisecreator/um_backend/graphql/model"
+	"github.com/guisecreator/um_web/graphql/model"
 )
 
 type Resolver struct {
@@ -49,25 +48,6 @@ func (U *UserReader) GetUser(ctx context.Context, userID string) (*model.User, e
 	return result.(*model.User), nil
 }
 
-//func NewLoaders(conn *sql.DB) *Resolver {
-//	// define the data loader
-//	userReader := &UserReader{conn: conn}
-//	loaders := &Loaders{
-//		UserLoader: dataloader.NewBatchedLoader(userReader.GetUsers),
-//	}
-//	return loaders
-//}
-
-func (d *authenticatedDirective) Validate(schema graphql.ExecutableSchema) error {
-	// Проверка валидности директивы
-	return nil
-}
-
-func (d *authenticatedDirective) MutateArgument(rc *graphql.ResolverContext) error {
-	// Логика мутации аргумента
-	return nil
-}
-
 func (r *Resolver) AdminOnlyQuery(ctx context.Context) (model.SomeType, error) {
 	result, err := CheckAuthorization(ctx, nil)
 	if err != nil {
@@ -76,7 +56,3 @@ func (r *Resolver) AdminOnlyQuery(ctx context.Context) (model.SomeType, error) {
 
 	return result.(model.SomeType), err
 }
-
-//func (r *queryResolver) AdminOnlyQuery(ctx context.Context) (*model.SomeType, error) {
-//	panic(fmt.Errorf("not implemented: AdminOnlyQuery - adminOnlyQuery"))
-//}

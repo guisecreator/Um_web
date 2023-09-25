@@ -19,7 +19,7 @@ const LoginButton = async () => {
     try {
       await router.push({ name: 'Index' });
     } catch (err2) {
-      console.err2('Error while navigating:', err2);
+      console.error('Error while navigating:', err2);
     } finally {
       loading.value = false;
     }

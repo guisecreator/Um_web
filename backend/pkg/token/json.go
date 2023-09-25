@@ -4,15 +4,19 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/guisecreator/um_backend/graphql/model"
+	"github.com/guisecreator/um_web/graphql/model"
 )
 
-func (t *Token) PutTokenInJSON(token string) (string, error) {
+func (t *Token) PutTokenInJSON() (string, error) {
 	tokenErr := errors.New("error marshalling token")
 
-	token = t.value
+	token := Token{
+		value: t.value,
+	}
+
+	//token = t.value
 	TokenINFO := model.AuthInfo{
-		Token: token,
+		Token: token.value,
 	}
 
 	jsonToken, err := json.Marshal(token)
@@ -20,12 +24,12 @@ func (t *Token) PutTokenInJSON(token string) (string, error) {
 		return tokenErr.Error(), err
 	}
 
-	token = base64.
+	token.value = base64.
 		StdEncoding.
 		EncodeToString(jsonToken)
-	TokenINFO.Token = token
+	TokenINFO.Token = token.value
 
-	return token, nil
+	return token.value, nil
 }
 
 func PullTokenFromJSON(token string) (string, error) {

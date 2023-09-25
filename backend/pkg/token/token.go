@@ -28,11 +28,11 @@ type RequestInfo struct {
 }
 
 type Claims struct {
-	Id      int
+	Id      string
 	Expired int64
 }
 
-func (t *Token) GenerateToken(id int) (Token, error) {
+func GenerateToken(id string) (Token, error) {
 	token := Token{
 		RequestInfo: RequestInfo{
 			Method:  "GET",

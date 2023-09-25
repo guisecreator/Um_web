@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/guisecreator/um_backend/db/dbmodels"
-	"github.com/guisecreator/um_backend/db/migrations"
+	"github.com/guisecreator/um_web/db/dbmodels"
+	"github.com/guisecreator/um_web/db/migrations"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -17,7 +17,11 @@ import (
 )
 
 func InitBunDb() *bun.DB {
-	openDB := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN("postgres://postgres:0000@localhost:5432/um_service1?sslmode=disable")))
+	openDB := sql.OpenDB(
+		pgdriver.
+			NewConnector(
+				pgdriver.
+					WithDSN("postgres://postgres:0000@localhost:5432/um_service1?sslmode=disable")))
 	if err := openDB.Ping(); err != nil {
 		panic(err)
 	}

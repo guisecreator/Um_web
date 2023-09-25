@@ -7,27 +7,21 @@ enum Roles {
 
 type User {
     id: ID!
-    name: String!
+		login: String!
     email: String!
+		password: String!
     createAt: DateTime!
     updateAt: DateTime!
     deletedAt: DateTime
     role: Roles!
 }
 
-type AuthInfo{
-    token: String!
+type Query {
+	me(login: String!): User @authenticated
+	users: [User!] @authenticated
+	authenticatedQuery: SomeType! @authenticated
+	userQuery(id: ID!): SomeType! @isUser(idArg: "id")
 }
-
-type AuthPayload {
-    user: User!
-    info: AuthInfo!
-}
-
-#type AuthPayload {
-#  token: String!
-#  user: User!
-#}
 
 type SomeType {
   id: ID!
@@ -36,30 +30,17 @@ type SomeType {
   email: String
 }
 
-type Query {
-    me(login: String!): User @authenticated
-    users: [User!] @authenticated
-#    adminOnlyQuery: SomeType! @CheckAuthorization(role: "ADMIN")
-    authenticatedQuery: SomeType! @authenticated
-    userQuery(id: ID!): SomeType! @isUser(idArg: "id")
-}
-
 directive @CheckAuthorization(role: Roles!) on FIELD_DEFINITION
 directive @isUser(idArg: String!) on FIELD_DEFINITION
 directive @authenticated on FIELD_DEFINITION
 directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 type Mutation {
-    createUser(name: String!, email: String!): User!
-    updateUser(users: [UpdateUser!]!): [User!]! @authenticated
-
-#    deleteUser(userID: ID!): Boolean @CheckAuthorization(role: ADMIN)
-    deleteUser(users: [ID!]!): [ID!]! @authenticated
-    newUser(users: [NewUser!]!): [User!]! @authenticated
-
-    signup(name: String!, email: String!, password: String!): AuthPayload!
-    login(email: String!, password: String!): AuthPayload @goField(forceResolver: true)
-    logout(login: String!): String @authenticated
+		createUser(newUser: [NewUser!]!):  [User!]! @authenticated
+    updateUser(userUpdate: [UpdateUser!]!): [User!]! @authenticated
+		deleteUser(userDelete: [ID!]!): [ID!]! @authenticated
+	# deleteUser(users: [ID!]!): Int @authenticated
+	# deleteUser(userID: ID!): Boolean @CheckAuthorization(role: ADMIN)
 
     validate: User @authenticated
 }
@@ -73,9 +54,4 @@ input UpdateUser{
     id: ID!
     login: String!
     role: Roles!
-}
-
-schema {
-  query: Query
-  mutation: Mutation
 }

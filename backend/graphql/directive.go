@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/guisecreator/um_backend/graphql/model"
-	"github.com/guisecreator/um_backend/pkg/authpayload"
-	"github.com/guisecreator/um_backend/pkg/token"
+	"github.com/guisecreator/um_web/graphql/model"
+	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/guisecreator/um_web/pkg/token"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"log"
 	"time"
@@ -78,9 +78,8 @@ func (r *Resolver) Authentication(
 		return nil, authenticationError
 	}
 
-	userRoles := []model.
-		Roles{
-		session.User.Role,
+	userRoles := []model.Roles{
+		session.Login.Role,
 	}
 
 	onlyAdmin := r.HasRole(userRoles, model.RolesAdmin)

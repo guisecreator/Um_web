@@ -3,7 +3,7 @@ package authpayload
 import (
 	"context"
 	"github.com/graph-gophers/dataloader"
-	"github.com/guisecreator/um_backend/graphql/model"
+	"github.com/guisecreator/um_web/graphql/model"
 	"net/http"
 )
 
@@ -22,10 +22,9 @@ type Loaders struct {
 const (
 	ctxAuthPayloadKey ctxKey = "ctxAuthPayloadKey"
 	ctxAuthInfoKey    ctxKey = "ctxAuthInfoKey"
+	CookieName        string = "_auth"
 	loadersKey               = ctxKey("dataloaders")
 )
-
-const CookieName string = "_auth"
 
 func ForContext(ctx context.Context) *AuthPayload {
 	raw := ctx.Value(ctxAuthPayloadKey).(*AuthPayload)
@@ -35,6 +34,11 @@ func ForContext(ctx context.Context) *AuthPayload {
 // For returns the dataloader for a given context
 func For(ctx context.Context) *Loaders {
 	return ctx.Value(loadersKey).(*Loaders)
+}
+
+func GetSessionTokenFromContext(ctx context.Context) (string, error) {
+	raw := ctx.Value(ctxAuthPayloadKey).(*AuthPayload)
+	return raw.AuthInfo.Token, nil
 }
 
 func (auth *AuthPayload) WithContext(

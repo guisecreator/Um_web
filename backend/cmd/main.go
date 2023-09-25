@@ -2,57 +2,127 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"github.com/jackc/pgx/v5"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/websocket"
+	"github.com/guisecreator/um_web/db"
+	"github.com/guisecreator/um_web/graphql"
+	middleware "github.com/guisecreator/um_web/pkg/middlewares"
+	"github.com/guisecreator/um_web/pkg/sessions"
+	"github.com/uptrace/bun"
 	"log"
-	"net"
+	"net/http"
 	"os"
+	"os/signal"
 
-	service "github.com/guisecreator/um_backend/proto"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/rs/cors"
 )
 
-
-//grpc server
-type server struct {
-	service.UnimplementedAddServiceServer
-	db *pgx.Conn
-}
+const defaultPort = "8080"
 
 func main() {
-	conn, err := pgx.Connect(context.Background(),
-		"postgres://postgres:0000@localhost:5432/um_service1")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
-	}
+	log.SetFlags(log.Lshortfile)
 
-	defer func(conn *pgx.Conn, ctx context.Context) {
-		err := conn.Close(ctx)
+	database := db.InitBunDb()
+	defer func(database *bun.DB) {
+		err := database.Close()
 		if err != nil {
-			fprintf, err := fmt.Fprintf(
-				os.Stderr, "Unable to close connection: %v\n", err)
-			if err != nil {
-				panic(fprintf)
-				return
-			}
-			os.Exit(1)
+			panic(err)
 		}
-	}(conn, context.Background())
+	}(database)
 
-	//db := db.InitBunDb()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+	router := chi.NewRouter()
+	router.Use(
+		cors.New(
+			cors.Options{
+				AllowedOrigins:      []string{"http://localhost:9000"},
+				AllowCredentials:    true,
+				AllowPrivateNetwork: true,
+				AllowedHeaders: []string{
+					"Accept",
+					"Content-Type",
+					"Content-Length",
+					"Accept-Encoding",
+					"Authorization",
+					"Set-Cookie",
+				},
+				AllowedMethods: []string{
+					"GET",
+					"POST",
+					"PUT",
+					"DELETE",
+					"UPDATE",
+					"PATCH",
+				},
+				Debug: true,
+				ExposedHeaders: []string{
+					"Set-Cookie",
+				},
+			},
+		).Handler)
+	router.Use(middleware.AuthMiddleware())
 
-	lis, err := net.Listen("tcp", ":4040")
-	if err != nil {
-		log.Println(err)
+	resolver := &graphql.Resolver{
+		Db:       database,
+		Sessions: sessions.NewObjectOfSessions(),
 	}
 
-	serv := grpc.NewServer()
-
-	service.RegisterAddServiceServer(serv, &server{db: conn})
-	reflection.Register(serv)
-	if e := serv.Serve(lis); e != nil {
-		log.Println(e)
+	graphConfig := graphql.Config{
+		Resolvers: resolver,
 	}
+
+	graphConfig.Directives.Authenticated = resolver.Authentication
+	srv := CreateServer(graphConfig)
+
+	router.Handle("/", playground.
+		Handler("GraphQL playground", "/query"))
+	router.Handle("/query", srv)
+
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	httpSrv := http.Server{Addr: ":" + port, Handler: router}
+
+	idleConsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+		log.Print("Shutting down application...")
+
+		if errShutdown := httpSrv.Shutdown(context.Background()); errShutdown != nil {
+			// Error from closing listeners, or context timeout:
+			log.Printf("HTTP server Shutdown: %v", errShutdown)
+		}
+		close(idleConsClosed)
+	}()
+
+	if errListen := httpSrv.ListenAndServe(); errListen != http.ErrServerClosed {
+		// Error starting or closing listener:
+		log.Fatalf("HTTP server ListenAndServe: %v", errListen)
+	}
+	<-idleConsClosed
+
+	log.Print("Shutting down application...")
+}
+
+func CreateServer(config graphql.Config) *handler.Server {
+	srv := handler.NewDefaultServer(
+		graphql.NewExecutableSchema(config))
+	srv.AddTransport(
+		&transport.Websocket{
+			Upgrader: websocket.Upgrader{
+				CheckOrigin: func(r *http.Request) bool {
+					// Check against your desired domains here
+					return r.Host == "localhost"
+				},
+				ReadBufferSize:  1024,
+				WriteBufferSize: 1024,
+			},
+		})
+	return srv
 }

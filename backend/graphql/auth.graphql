@@ -1,0 +1,14 @@
+type AuthInfo {
+	Token: String!
+}
+
+type AuthPayload {
+	user: User!
+	info: AuthInfo!
+}
+
+extend type Mutation{
+	signup(login: String!, email: String!, password: String!): AuthPayload!
+	login(login: String!, email: String!, password: String!): AuthPayload @goField(forceResolver: true)
+	logout(login: String!): String @authenticated
+}
