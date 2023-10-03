@@ -49,11 +49,14 @@
 import { useUserStore } from '@/store/store-users';
 import { ref } from 'vue';
 import { ApolloError } from '@apollo/client/errors';
-import { useApolloClient } from '@vue/apollo-composable'
 import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { LOGIN_MUTATION, Role } from '../gql/types';
+import { LOGIN_MUTATION, Role } from '@/gql/types';
 import gql from 'graphql-tag';
+
+import { useApolloClient } from '@vue/apollo-composable';
+import { createApolloClient } from '@/apollo/apollo';
+
+const apolloClient = useApolloClient();
 
 
 const form = ref(false);
@@ -169,26 +172,3 @@ const onReset = () => {
   };
 
 </script>
-
-<style>
-.text-center {
-  text-align: center;
-}
-.custom-input .v-input__control {
-  height: 55px;
-  width: 100%;
-}
-.custom-input .v-input__input {
-  font-size: 14px;
-}
-
-.error-button {
-  background-color: red !important;
-  color: white !important;
-}
-
-.success-button {
-  background-color: green !important;
-  color: white !important;
-}
-</style>

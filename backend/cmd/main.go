@@ -41,7 +41,7 @@ func main() {
 	router.Use(
 		cors.New(
 			cors.Options{
-				AllowedOrigins:      []string{"http://localhost:9000"},
+				AllowedOrigins:      []string{"http://localhost:3000"},
 				AllowCredentials:    true,
 				AllowPrivateNetwork: true,
 				AllowedHeaders: []string{
@@ -118,7 +118,7 @@ func CreateServer(config graphql.Config) *handler.Server {
 			Upgrader: websocket.Upgrader{
 				CheckOrigin: func(r *http.Request) bool {
 					// Check against your desired domains here
-					return r.Host == "localhost"
+					return r.Host == "localhost:3000"
 				},
 				ReadBufferSize:  1024,
 				WriteBufferSize: 1024,

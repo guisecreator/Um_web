@@ -8,16 +8,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
+
 	"github.com/guisecreator/um_web/graphql/model"
 	"github.com/guisecreator/um_web/pkg/authpayload"
 	"github.com/uptrace/bun"
-	"log"
-	"strconv"
 )
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context,
-	newUser []*model.NewUser) ([]*model.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, newUser []*model.NewUser) ([]*model.User, error) {
 	var users = make([]*model.User, 0)
 
 	for userData, _ := range newUser {
@@ -51,8 +51,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context,
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context,
-	userUpdate []*model.UpdateUser) ([]*model.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, userUpdate []*model.UpdateUser) ([]*model.User, error) {
 	var users = make([]*model.User, 0)
 
 	for userData, _ := range userUpdate {
@@ -84,8 +83,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context,
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context,
-	userDelete []string) ([]string, error) {
+func (r *mutationResolver) DeleteUser(ctx context.Context, userDelete []string) ([]string, error) {
 	db := r.Db.
 		NewDelete().
 		Model(&model.User{}).

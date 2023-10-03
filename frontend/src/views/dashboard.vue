@@ -4,7 +4,7 @@
       <div class="text-subtitle-2"></div>
       <v-card  theme="dark" width="1000" height="700">
         <v-progress-linear v-show="loading" :active="loading" :indeterminate="loading" absolute bottom color="deep-purple-accent-4"/>
-        <div class="text-h5 my-234 text-center">Control Panel</div>
+        <div class="text-h5 my-234 text-center">Dashboard</div>
         <v-card-actions class="justify-end">
           <br />
           <v-btn color="primary" size="small" type="submit" class="mr-2 mr-auto" variant="elevated" icon="mdi-checkbox-multiple-marked"
@@ -79,7 +79,7 @@
           <v-dialog v-model="editDialog" persistent width="1024">
               <template v-slot:activator="{ props }">
                 <v-btn color="grey" size="small" type="submit" variant="elevated" icon="mdi-pencil" role="link" dark
-                @click="editUserData()">Edit</v-btn>
+                @click="editUser()">Edit</v-btn>
             </template>
             <v-card>
               <v-card-title class="d-flex">
@@ -91,6 +91,7 @@
               <v-card-text>
                 <v-container>
                   <v-row>
+
                     <!-- <v-col cols="12">
                   <v-text-field label="Login*" required v-model="newRow.fields.name.value" color="grey" hide-details="auto"/>
                       </v-col>
@@ -101,6 +102,7 @@
                       <v-col cols="12">
                       <v-select v-model="newRow.fields.role.value" :items="Object.values(Role as any)" label="Role*" required />
                       </v-col> -->
+
                 </v-row>
               </v-container>
             </v-card-text>
@@ -136,9 +138,12 @@ import { UserData, UserDataFields, UserField, UserDataKey} from '@/types/types';
 import { useRouter } from 'vue-router';
 import { User, Role } from '@/gql/types';
 import gql from 'graphql-tag';
-import { useApolloClient } from '@vue/apollo-composable'
-import SaveButton from '@/components/users/SaveButton.vue';
+import { useApolloClient } from '@vue/apollo-composable';
+import { createApolloClient } from '@/apollo/apollo';
+import SaveButton from '@/components/users/save_button.vue';
 
+
+const apolloClient = useApolloClient();
 
 const loading = ref(false);
 const createDialog = ref(false);
@@ -146,11 +151,8 @@ const editDialog = ref(false);
 const selected = ref(false);
 
 const someData = ref<UserDataFields>();
-
 const columns: Ref<UserDataFields[]> = ref([]);
-
-// const roleValues: Role[] = Object.values<Role>(Role) as Role[];
-const rows = ref<UserData[]>([])
+const rows = ref<UserData[]>([]);
 
 const router = useRouter();
 router.beforeEach((to, from, next) => {
@@ -311,30 +313,42 @@ function createUser() {
   }
 }
 
-//TODO:
-function editUserData() {
+
+async function editUser() {
+  try{
   loading.value = true;
-  const oldRow = rows.value[0];
-};
+  const oldLoginRow = nameInputValue.value.valueOf()
+  const oldEmailRow = emailInputValue.value.valueOf()
+  const oldRoleRow = selectRoleValue.value.valueOf()
+
+  if (oldLoginRow === "" || oldEmailRow === "" || oldRoleRow === ""){
+    loading.value = false;
+    console.error("error: you can't edit a simple user");
+  }
+
+  } catch (e) {
+    console.error(e);
+    loading.value = false;
+  }
+}
 
 //TODO:
 function deleteUser() {
   loading.value = true;
   const oldRow = rows.value[0];
-
 }
 
 async function deleteSelectedUsers() {
   loading.value = true;
-  const selectedRow = rows.value[0].selected;
 
-  if (selectedRow) {
-    rows.value = await rows.value.filter((user) => !selectedRow);
-    console.log("row has been deleted");
-  } else {
-    rows.value.splice(0, 1)
+  rows.value = await rows.value.filter((user) => !user.selected);
+  if (rows.value && rows.value.length === 0) {
+    loading.value = false;
+    console.error("error: you can't delete all users");
+    return;
   }
-  loading.value = false
+
+  loading.value = false;
 }
 
 function checkNewUser(field: UserField<string>, isNew: boolean) {

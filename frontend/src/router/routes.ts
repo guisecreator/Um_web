@@ -8,24 +8,24 @@ const routes: RouteRecordRaw[] = [
       {
         path: '/',
         name: 'Login',
-        component: () => import('../views/AuthPage.vue'),
+        component: () => import('../views/login.vue'),
         meta: {
           requiresAuth: false,
           title: 'Login'
         }
       },
       {
-        path: '/Control-Panel',
+        path: '/Dashboard',
         name: 'Index',
-        component: () => import('../views/PanelPage.vue'),
+        component: () => import('../views/dashboard.vue'),
         meta: { requiresAuth: true,
-          title: 'Control Panel'
+          title: 'Dashboard'
         }
       },
       {
         path: '/Settings',
         name: 'Settings',
-        component: () => import('../views/SettingsPage.vue'),
+        component: () => import('../views/settings.vue'),
         meta: { requiresAuth: true,
           title: 'Settings'
         }
@@ -34,7 +34,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/:catchAll(.*)*',
-    component: () => import('../views/PageNotFound.vue'),
+    component: () => import('../views/not_found.vue'),
     meta: { requiresAuth: false,
       title: '404 Page Not Found'
     }

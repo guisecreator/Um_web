@@ -7,25 +7,23 @@ package graphql
 import (
 	"context"
 	"fmt"
-	"github.com/guisecreator/um_web/pkg/authpayload"
-	"github.com/guisecreator/um_web/pkg/sessions"
-	"github.com/guisecreator/um_web/pkg/token"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/guisecreator/um_web/graphql/model"
+	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/guisecreator/um_web/pkg/sessions"
+	"github.com/guisecreator/um_web/pkg/token"
 )
 
 // Signup is the resolver for the signup field.
-func (r *mutationResolver) Signup(ctx context.Context, login string,
-	email string, password string) (*model.AuthPayload, error) {
+func (r *mutationResolver) Signup(ctx context.Context, login string, email string, password string) (*model.AuthPayload, error) {
 	panic(fmt.Errorf("not implemented: Signup - signup"))
 }
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, login string,
-	email string, password string) (*model.AuthPayload, error) {
+func (r *mutationResolver) Login(ctx context.Context, login string, email string, password string) (*model.AuthPayload, error) {
 	user := model.User{}
 
 	errScan := r.Db.NewSelect().Model(&user).Scan(ctx)

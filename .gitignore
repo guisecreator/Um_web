@@ -1,9 +1,7 @@
 .idea
 
 #FRONTEND
-frontend/src/gql/types.ts
-frontend/src/gql/graphql.ts
-/frontend/src/gql/*
+
 
 #BACKEND
 

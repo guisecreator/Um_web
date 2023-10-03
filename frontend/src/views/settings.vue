@@ -64,10 +64,6 @@ router.beforeResolve((to, from, next) => {
 });
 
 
-//const userStore = useUserStore();
-// const { user } = storeToRefs(userStore);
-
-
 function navigateToIndex() {
   loading.value = true;
   router.push({ name: 'Index' });
