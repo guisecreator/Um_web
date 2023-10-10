@@ -57,3 +57,14 @@ func PullTokenFromJSON(token string) (string, error) {
 
 	return token, nil
 }
+
+func (t *Token) ToJsonString() (string, error) {
+	tokenStr := t.value
+
+	authInfo := &model.AuthInfo{Token: tokenStr}
+	b, errJson := json.Marshal(authInfo)
+	if errJson != nil {
+		return "", errJson
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
+}

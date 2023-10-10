@@ -6,88 +6,117 @@ package graphql
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/http"
-	"strconv"
-	"time"
-
+	"github.com/guisecreator/um_web/db/dbmodels"
 	"github.com/guisecreator/um_web/graphql/model"
 	"github.com/guisecreator/um_web/pkg/authpayload"
 	"github.com/guisecreator/um_web/pkg/sessions"
 	"github.com/guisecreator/um_web/pkg/token"
+	"golang.org/x/crypto/bcrypt"
+	"log"
+	"net/http"
+	"time"
 )
 
 // Signup is the resolver for the signup field.
-func (r *mutationResolver) Signup(ctx context.Context, login string, email string, password string) (*model.AuthPayload, error) {
+func (r *mutationResolver) Signup(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
 	panic(fmt.Errorf("not implemented: Signup - signup"))
 }
 
 // Login is the resolver for the login field.
-func (r *mutationResolver) Login(ctx context.Context, login string, email string, password string) (*model.AuthPayload, error) {
-	user := model.User{}
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.AuthPayload, error) {
+	const incorrectMessage = "incorrect login and/or password"
 
-	errScan := r.Db.NewSelect().Model(&user).Scan(ctx)
+	dbUser := dbmodels.User{}
+
+	errScan := r.Db.
+		NewSelect().
+		Model(&dbUser).
+		Where("email = ?", email).
+		Scan(ctx)
 	if errScan != nil {
+		log.Println(errScan)
+	}
+
+	create_at := time.Now().Format(time.RFC3339)
+	update_at := time.Now().Format(time.RFC3339)
+
+	if errScan != nil {
+		log.Println(errScan.Error())
+		if dbUser == (dbmodels.User{}) {
+			return nil, errors.New("err scan: " + incorrectMessage)
+		}
 		return nil, errScan
 	}
 
-	createAt := time.Now().Format(time.RFC3339)
-	updateAt := time.Now().Format(time.RFC3339)
-
-	tokenGen, err := token.GenerateToken(user.ID)
+	hashedPassword, err := bcrypt.
+		GenerateFromPassword([]byte(
+			dbUser.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("generateToken gen error: %v", err)
+		log.Println(err)
+		return nil, errors.New("hashed password error")
 	}
 
-	newToken, err := tokenGen.PutTokenInJSON()
-	if err != nil {
-		return nil, err
+	errHash := bcrypt.CompareHashAndPassword(
+		[]byte(hashedPassword), []byte(password))
+	if errHash != nil {
+		log.Println(errHash)
+		return nil, errors.New("compare hashed password error")
 	}
 
-	r.Sessions.AddSession(newToken, sessions.Session{
-		Id:         user.ID,
-		Login:      model.User{Login: login},
-		PrivateKey: tokenGen.PrivateKey,
-		Roles:      model.Roles(model.RolesUser),
-	})
+	generateToken, errToken := token.
+		GenerateToken(dbUser.ID)
+	if errToken != nil {
+		return nil, errToken
+	}
 
-	expired := time.Now().AddDate(1, 0, 0)
+	cookieValue, errCookie := generateToken.ToJsonString()
+	r.Sessions.AddSession(
+		cookieValue, sessions.Session{
+			Id:         dbUser.ID,
+			PrivateKey: generateToken.PrivateKey,
+			Login:      model.User{Email: dbUser.Email},
+			Roles:      model.Roles(dbUser.Roles),
+		},
+	)
+	if errCookie != nil {
+		log.Printf("generateToken stringify error: %v", errCookie)
+		return nil, errors.New("internal error")
+	}
+
+	authInfo := &model.AuthInfo{Token: cookieValue}
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+
 	cookie := http.Cookie{
-		Name:     authpayload.CookieName,
-		Value:    newToken,
+		Name:     "auth_cookie",
+		Value:    cookieValue,
 		Path:     "/",
-		Expires:  expired,
-		MaxAge:   3600,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
 		Secure:   true,
-		HttpOnly: false,
+		Expires:  expiration,
 	}
+	s := authpayload.ForContext(ctx)
 
-	payload := authpayload.ForContext(ctx)
-	http.SetCookie(payload.ResponseWriter, &cookie)
+	http.SetCookie(s.ResponseWriter, &cookie)
+	fmt.Printf("Set cookie %v=%s\n", cookie.Name, cookieValue)
 
-	Id := strconv.Itoa(len(user.ID))
-
-	user = model.User{
-		Login:    login,
-		Email:    email,
-		Password: password,
-		ID:       Id,
-		Role:     model.Roles(model.RolesUser),
-		CreateAt: createAt,
-		UpdateAt: updateAt,
-	}
-
-	authInfo := &model.AuthInfo{Token: newToken}
-	authPayLoad := &model.AuthPayload{
-		User: &user,
+	id := dbUser.ID
+	return &model.AuthPayload{
+		User: &model.User{
+			ID:       id,
+			Email:    dbUser.Email,
+			CreateAt: create_at,
+			UpdateAt: update_at,
+			Role:     model.Roles(dbUser.Roles),
+		},
 		Info: authInfo,
-	}
-
-	return authPayLoad, nil
+	}, nil
 }
 
 // Logout is the resolver for the logout field.
-func (r *mutationResolver) Logout(ctx context.Context, login string) (*string, error) {
+func (r *mutationResolver) Logout(ctx context.Context, email string) (*string, error) {
 	user := model.User{}
 
 	db := r.Db.NewSelect().Model(&user).Scan(ctx)
@@ -104,7 +133,7 @@ func (r *mutationResolver) Logout(ctx context.Context, login string) (*string, e
 	r.Sessions.RemoveSession(tokenFromContext)
 
 	user = model.User{
-		Login: login,
+		Email: email,
 	}
 
 	return &tokenFromContext, nil

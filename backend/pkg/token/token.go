@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 )
@@ -33,22 +32,11 @@ type Claims struct {
 }
 
 func GenerateToken(id string) (Token, error) {
-	token := Token{
-		RequestInfo: RequestInfo{
-			Method:  "GET",
-			Host:    "localhost",
-			URL:     http.Request{},
-			Headers: http.Header{},
-		},
-	}
-
-	token.expiredTime = time.Now().AddDate(1, 0, 0)
-
+	t := Token{}
+	expireUnix := time.Now().AddDate(1, 0, 0)
 	claims := Claims{
-		Id: id,
-		Expired: token.
-			expiredTime.
-			Unix(),
+		Id:      id,
+		Expired: expireUnix.Unix(),
 	}
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -58,11 +46,10 @@ func GenerateToken(id string) (Token, error) {
 
 	claimsBytes, errClaims := json.Marshal(claims)
 	if errClaims != nil {
-		return token, fmt.Errorf(
-			"error encoding claims: %w", err)
+		return t, fmt.Errorf("error encoding claims: %w", err)
 	}
 
-	encryptedBytes, err := Encrypt(
+	encryptedBytes, err := EncryptOAEP(
 		sha256.New(),
 		rand.Reader,
 		&privateKey.PublicKey,
@@ -70,16 +57,15 @@ func GenerateToken(id string) (Token, error) {
 		nil,
 	)
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	tokenStr := base64.StdEncoding.EncodeToString(encryptedBytes)
 
-	token = Token{
-		value:       tokenStr,
-		expiredTime: token.expiredTime,
-		PrivateKey:  *privateKey,
+	t = Token{
+		value:      tokenStr,
+		PrivateKey: *privateKey,
 	}
 
-	return token, nil
+	return t, nil
 }

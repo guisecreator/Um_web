@@ -2,36 +2,44 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"github.com/guisecreator/um_web/graphql/model"
 	"github.com/guisecreator/um_web/pkg/authpayload"
 	"log"
 	"net/http"
 )
 
-// AuthMiddleware is a middleware that checks and extracts user ID from cookie
+type HandleAuthHTTPFunc func(w http.ResponseWriter, r *http.Request) (*http.Request, error)
+
 func AuthMiddleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
+	return func(nextHttp http.Handler) http.Handler {
 		return http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-				ctx := r.Context()
+			func(responseWriter http.ResponseWriter, request *http.Request) {
+				ctx := request.Context()
 
 				payload := authpayload.AuthPayload{
-					ResponseWriter: w,
-					Request:        *r,
+					ResponseWriter: responseWriter,
+					Request:        *request,
+					AuthInfo:       model.AuthInfo{},
 				}
 
-				cookie, err := r.Cookie(authpayload.CookieName)
-				if err != nil {
-					log.Printf("Cookie retrieval error: %v ",
-						err.Error())
-					r = r.WithContext(payload.
-						WithContext(ctx))
-					next.ServeHTTP(w, r)
-					return
-				}
+				logRequest(responseWriter, request)
 
+				cookie, err := request.Cookie("auth_cookie")
 				if err != nil || cookie == nil {
-					next.ServeHTTP(w, r)
+					log.Printf("Куки 'auth_cookie' не установлены или ошибка: %v", err.Error())
+					request = request.WithContext(payload.WithContext(ctx))
+					nextHttp.ServeHTTP(responseWriter, request)
+					return
+				} else {
+					log.Printf("Значение куки: %s", cookie.Value)
+				}
+
+				user := model.User{}
+				user.Role = model.Roles(cookie.Value)
+				if user.Role != model.RolesAdmin {
+					nextHttp.ServeHTTP(responseWriter, request)
+					log.Printf("User %s not have admin role", user.Email)
 					return
 				}
 
@@ -39,10 +47,16 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 				auth.Token = cookie.Value
 				payload.AuthInfo = auth
 
-				r = r.WithContext(ctx)
-				next.ServeHTTP(w, r)
+				request = request.WithContext(ctx)
+				nextHttp.ServeHTTP(responseWriter, request)
 			},
 		)
+	}
+}
+
+func logRequest(w http.ResponseWriter, r *http.Request) {
+	for key, value := range r.Header {
+		fmt.Printf("Header: %s = %s\n", key, value)
 	}
 }
 

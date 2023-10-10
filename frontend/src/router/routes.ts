@@ -48,23 +48,18 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   document.title = (to.meta.title as string) || 'Default Title';
-  next();
+
+  const userStore = useUserStore();
+
+  if (to.meta.requiresAuth) {
+    if (!userStore.isLoggedIn) {
+      next({ name: 'Login' });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
-
-// router.beforeEach((to, from, next) => {
-//   document.title = (to.meta.title as string) || 'Default Title';
-
-//   const userStore = useUserStore();
-
-//   if (to.meta.requiresAuth) {
-//     if (!userStore.isLoggedIn) {
-//       next({ name: 'Login' });
-//     } else {
-//       next();
-//     }
-//   } else {
-//     next();
-//   }
-// });
 
 export default router

@@ -2,13 +2,21 @@ export type LOGIN_MUTATION = {
   login: {
     user: {
       id: string;
-      login: string;
+      email: string;
+      password: string;
       role: string;
+      createAt: string;
+      updateAt: string;
+      deletedAt: string;
     };
+    info: {
+      Token: string;
+    }
   };
 };
 
 export enum Role {
+  MODERATOR = 'MODERATOR',
   ADMIN = 'ADMIN',
   USER = 'USER',
 }
@@ -16,27 +24,28 @@ export enum Role {
 export type MUTATION = {
   validate: {
     id: string;
-    login: string;
+    email: string;
     role: string;
   };
   userNew: {
     id: string;
-    login: string;
+    email: string;
+    password: string;
     role: string;
   }[];
   userDelete: {
     id: string;
-    login: string;
+    email: string;
     role: string;
   }[];
   userUpdate: {
     id: string;
-    login: string;
+    email: string;
     role: string;
   }[];
   userSelect: {
     id: string;
-    login: string;
+    email: string;
     role: string;
   }[];
 };
@@ -49,21 +58,8 @@ export type MutationResult = {
 
 export type User = {
   id: string;
-  name: string;
-  email: string;
   role: Role;
+  password: string;
+  email: string;
 };
 
-
-// const response = await this.$apollo.mutate({
-//     mutation: gql`
-//       mutation Login($email: String!, $password: String!) {
-//         login(email: $email, password: $password) {
-//         }
-//       }
-//     `,
-//     variables: {
-//       email: 'example@example.com',
-//       password: 'password',
-//     },
-//   });

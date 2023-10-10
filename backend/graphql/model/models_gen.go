@@ -18,26 +18,24 @@ type AuthPayload struct {
 }
 
 type NewUser struct {
-	Login string `json:"login"`
+	Email string `json:"email"`
 	Role  Roles  `json:"role"`
 }
 
 type SomeType struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Age   *int    `json:"age,omitempty"`
-	Email *string `json:"email,omitempty"`
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Age   *int   `json:"age,omitempty"`
 }
 
 type UpdateUser struct {
 	ID    string `json:"id"`
-	Login string `json:"login"`
+	Email string `json:"email"`
 	Role  Roles  `json:"role"`
 }
 
 type User struct {
 	ID        string  `json:"id"`
-	Login     string  `json:"login"`
 	Email     string  `json:"email"`
 	Password  string  `json:"password"`
 	CreateAt  string  `json:"createAt"`
@@ -49,18 +47,20 @@ type User struct {
 type Roles string
 
 const (
-	RolesAdmin Roles = "ADMIN"
-	RolesUser  Roles = "USER"
+	RolesModerator Roles = "MODERATOR"
+	RolesAdmin     Roles = "ADMIN"
+	RolesUser      Roles = "USER"
 )
 
 var AllRoles = []Roles{
+	RolesModerator,
 	RolesAdmin,
 	RolesUser,
 }
 
 func (e Roles) IsValid() bool {
 	switch e {
-	case RolesAdmin, RolesUser:
+	case RolesModerator, RolesAdmin, RolesUser:
 		return true
 	}
 	return false

@@ -47,17 +47,17 @@
 
 <script lang="ts" setup>
 import { useUserStore } from '@/store/store-users';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { ApolloError } from '@apollo/client/errors';
 import { useRouter } from 'vue-router';
 import { LOGIN_MUTATION, Role } from '@/gql/types';
 import gql from 'graphql-tag';
+import Cookies from 'js-cookie';
 
 import { useApolloClient } from '@vue/apollo-composable';
 import { createApolloClient } from '@/apollo/apollo';
 
 const apolloClient = useApolloClient();
-
 
 const form = ref(false);
 const loading = ref(false);
@@ -76,7 +76,7 @@ router.beforeResolve((to, from, next) => {
   next();
 });
 
-const login = ref('');
+
 const email = ref('');
 const password = ref('');
 
@@ -92,66 +92,70 @@ const emailRules = [
 
 const serverConnected = ref(true);
 
-const checkServerConnection = async () => {
-  const apolloClient = useApolloClient();
-  try {
-    await apolloClient.client.query({ query: gql`query { ping }` });
-    console.log('Connected to the server');
-    serverConnected.value = true;
-  } catch (error) {
-    console.error('Server connection error:', error);
-    serverConnected.value = false;
-  }
-};
-
 const isSuccess = ref(false);
 const hasError = ref(false);
 
-const onSubmit = () => {
-  const apolloClient = useApolloClient();
-  hasError.value = true;
+
+async function onSubmit() {
   loading.value = true;
-  checkServerConnection();
+  const cookie = Cookies.get('auth_cookie');
 
-  if (!serverConnected.value) {
-    const emailError = ref('');
-    emailError.value = 'Server connection error';
-    loading.value = false
-    return console.log('Server connection error');
-  }
-  apolloClient.client
-  .mutate<LOGIN_MUTATION>({
-    mutation: gql`
-    mutation Auth($login: String!, $password: String!) {
-    login(login: $login, password: $password) {
-    user {
-      id
-      login
-      role
+  try {
+    const responseData = await apolloClient.client.mutate<LOGIN_MUTATION>({
+      mutation: gql`
+        mutation Auth($email: String!, $password: String!) {
+          login(email: $email, password: $password) {
+            user {
+              id
+              email
+              password
+              createAt
+              updateAt
+              deletedAt
+              role
+            }
+            info {
+            Token
           }
+        }
       }
-    }
-  `,
-    variables: {
-      login: login.value,
-      password: password.value,
-    }
-  })
-  .then((responseData: any) => {
-    console.log(responseData)
-    if (isValidEmail(email.value)) {
-      userStore.Login(responseData?.data!.login?.user?.role as typeof Role);
-      //hasError.value = true;
-      router.push({ name: 'Index' });
-      isSuccess.value = true;
-    }
-    loading.value = false
-}).catch((e: ApolloError) => {
-  hasError.value = true;
-  console.log(e)
-})
+      `,
+      variables: {
+        email: email.value,
+        password: password.value,
+      },
+    });
 
-function isValidEmail(this: any, email: string) {
+    console.log(responseData);
+    const role = responseData?.data?.login?.user?.role;
+    userStore.Login(role as Role);
+
+    const authToken = responseData?.data?.login?.info?.Token;
+    console.log(authToken);
+
+    const setCookie = Cookies.set('auth_cookie', authToken, {
+      expires: 7, path: '/', sameSite: 'lax', secure: false });
+    if (!setCookie) {
+      hasError.value = true;
+      loading.value = false;
+      console.log("coockies not set");
+      return;
+    }
+
+    router.push({ name: 'Index' });
+    isSuccess.value = true;
+  } catch (e) {
+    console.error(e);
+    hasError.value = true;
+  } finally {
+    loading.value = false;
+}
+
+function isValidEmail(this: any, email: string): boolean {
+  if (!email) {
+    this.emailError = 'E-mail is required';
+    return false;
+  }
   for (const rule of emailRules) {
     const validationResult = rule(email);
     if (typeof validationResult === 'string') {
@@ -161,9 +165,7 @@ function isValidEmail(this: any, email: string) {
   }
   this.emailError = '';
   return true;
-}
-
-};
+}};
 
 const onReset = () => {
     email.value = '';

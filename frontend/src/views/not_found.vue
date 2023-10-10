@@ -7,7 +7,7 @@
       <div class="text-h2" style="opacity:.4">
         Error. Page not found.
       </div>
-      <v-card-title class="text-center my-5">You can try to login..</v-card-title>
+      <v-card-title class="text-center my-5">You've come to the non-existent page.</v-card-title>
       <v-btn
         class="q-mt-xl"
         color="white"

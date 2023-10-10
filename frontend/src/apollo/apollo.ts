@@ -10,11 +10,7 @@ export const createApolloClient = new ApolloClient({
   cache: new InMemoryCache(),
   connectToDevTools: true,
   credentials: 'include',
-  defaultOptions: {
-    query: {
-      fetchPolicy: 'no-cache',
-    },
-  },
+
 });
 
 export const useApollo = () => useApolloClient(typeof createApolloClient);

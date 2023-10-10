@@ -1,13 +1,13 @@
 scalar DateTime
 
 enum Roles {
+		MODERATOR
     ADMIN
     USER
 }
 
 type User {
     id: ID!
-		login: String!
     email: String!
 		password: String!
     createAt: DateTime!
@@ -17,7 +17,7 @@ type User {
 }
 
 type Query {
-	me(login: String!): User @authenticated
+	me(email: String!): User @authenticated
 	users: [User!] @authenticated
 	authenticatedQuery: SomeType! @authenticated
 	userQuery(id: ID!): SomeType! @isUser(idArg: "id")
@@ -25,9 +25,8 @@ type Query {
 
 type SomeType {
   id: ID!
-  name: String!
+  email: String!
   age: Int
-  email: String
 }
 
 directive @CheckAuthorization(role: Roles!) on FIELD_DEFINITION
@@ -36,22 +35,19 @@ directive @authenticated on FIELD_DEFINITION
 directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 type Mutation {
-		createUser(newUser: [NewUser!]!):  [User!]! @authenticated
+		createUser(newUser: [NewUser!]!):  [User!]! @CheckAuthorization(role: ADMIN)
     updateUser(userUpdate: [UpdateUser!]!): [User!]! @authenticated
-		deleteUser(userDelete: [ID!]!): [ID!]! @authenticated
-	# deleteUser(users: [ID!]!): Int @authenticated
-	# deleteUser(userID: ID!): Boolean @CheckAuthorization(role: ADMIN)
-
+		deleteUser(userDelete: [ID!]!): [ID!]! @CheckAuthorization(role: ADMIN)
     validate: User @authenticated
 }
 
 input NewUser{
-    login: String!
+    email: String!
     role: Roles!
 }
 
 input UpdateUser{
     id: ID!
-    login: String!
+    email: String!
     role: Roles!
 }

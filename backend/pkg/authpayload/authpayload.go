@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/graph-gophers/dataloader"
 	"github.com/guisecreator/um_web/graphql/model"
+	"log"
 	"net/http"
 )
 
@@ -22,12 +23,14 @@ type Loaders struct {
 const (
 	ctxAuthPayloadKey ctxKey = "ctxAuthPayloadKey"
 	ctxAuthInfoKey    ctxKey = "ctxAuthInfoKey"
-	CookieName        string = "_auth"
 	loadersKey               = ctxKey("dataloaders")
 )
 
 func ForContext(ctx context.Context) *AuthPayload {
 	raw := ctx.Value(ctxAuthPayloadKey).(*AuthPayload)
+	if raw == nil {
+		log.Println("raw is nil")
+	}
 	return raw
 }
 

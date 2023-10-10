@@ -7,7 +7,7 @@ import gql from 'graphql-tag';
 
 export const useUserStore = defineStore('user', ()  => {
   const isLoggedIn = ref(false);
-  const Roles = ref<typeof Role>();
+  const Roles = ref<Role>();
 
   async function InitStore(): Promise<boolean> {
     let responseData: any;
@@ -21,7 +21,6 @@ export const useUserStore = defineStore('user', ()  => {
       validate{
         id
         email
-        login
         role
       }
     }`})
@@ -33,11 +32,11 @@ export const useUserStore = defineStore('user', ()  => {
 
     isLoggedIn.value = true;
     //TODO: converted from Roles.value = response.data?.validate?.role || null;
-    typeof Roles.value ; responseData.data?.validate?.role || null;
+    Roles.value ; responseData.data?.validate?.role || null;
     return true;
   }
 
-  function Login(role: typeof Role): void {
+  function Login(role: Role): void {
     isLoggedIn.value = true;
     Roles.value = role;
   }

@@ -8,7 +8,7 @@ type AuthPayload {
 }
 
 extend type Mutation{
-	signup(login: String!, email: String!, password: String!): AuthPayload!
-	login(login: String!, email: String!, password: String!): AuthPayload @goField(forceResolver: true)
-	logout(login: String!): String @authenticated
+	signup(email: String!, password: String!): AuthPayload!
+	login(email: String!, password: String!): AuthPayload @goField(forceResolver: true)
+	logout(email: String!): String @authenticated
 }

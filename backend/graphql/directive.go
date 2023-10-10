@@ -62,7 +62,6 @@ func (r *Resolver) HasRole(
 func (r *Resolver) Authentication(
 	ctx context.Context, _ interface{},
 	next graphql.Resolver) (interface{}, error) {
-
 	authenticationError := errors.New("access is denied")
 
 	auth := authpayload.ForContext(ctx)
@@ -82,8 +81,10 @@ func (r *Resolver) Authentication(
 		session.Login.Role,
 	}
 
+	onlyModerator := r.HasRole(userRoles, model.RolesModerator)
 	onlyAdmin := r.HasRole(userRoles, model.RolesAdmin)
-	if !onlyAdmin {
+	if !onlyAdmin && !onlyModerator {
+		log.Printf("User %s not have admin role or moderator role", session.Login.Email)
 		return nil, authenticationError
 	}
 

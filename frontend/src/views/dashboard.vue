@@ -21,6 +21,16 @@
           v-show="showCheckboxes"
           @click="deleteSelectedUsers"
           ></v-btn>
+          <v-btn
+          color="primary"
+          size="small"
+          type="submit"
+          class="mr-2"
+          variant="elevated"
+          icon="refresh"
+          @click="refreshUserData"
+          >
+          </v-btn>
           <SaveButton v-model:saveData="rows" @update:saveData="onSaved"></SaveButton>
           <v-dialog v-model="createDialog" persistent width="1024">
             <template v-slot:activator="{ props }">
@@ -39,11 +49,14 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12">
+                  <!-- <v-col cols="12">
                     <v-text-field v-model="nameInputValue" label="Login*" required color="grey" hide-details="auto"/>
-                  </v-col>
+                  </v-col> -->
                   <v-col cols="12">
                     <v-text-field v-model="emailInputValue" label="Email*" required :rules="emailRules" color="grey" hide-details="auto"/>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-text-field v-model="passwordInputValue" label="Password*" required :rules="emailRules" color="grey" hide-details="auto"/>
                   </v-col>
                   <v-col cols="12">
                     <v-select v-model="selectRoleValue" :items="Object.values(Role as any)" label="Role*" required/>
@@ -140,7 +153,7 @@ import { User, Role } from '@/gql/types';
 import gql from 'graphql-tag';
 import { useApolloClient } from '@vue/apollo-composable';
 import { createApolloClient } from '@/apollo/apollo';
-import SaveButton from '@/components/users/save_button.vue';
+// import SaveButton from '@/components/users/save_button.vue';
 
 
 const apolloClient = useApolloClient();
@@ -166,7 +179,7 @@ router.beforeResolve((to, from, next) => {
 });
 
 const showCheckboxes = ref(false);
-function toggleCheckboxes() {
+function toggleCheckboxes(): void {
   showCheckboxes.value = !showCheckboxes.value;
 }
 
@@ -182,19 +195,21 @@ onMounted(() => {
   refreshUserData()
 })
 
-async function refreshUserData() {
+async function refreshUserData(): Promise<void> {
   loading.value = true;
-  const apolloClient = useApolloClient();
   try{
     const serverResult: any = await apolloClient.client.query({
     query: gql`
       query {
-        users {
-          id
-          name
-          email
-          role
-        }
+        user {
+              id
+              email
+              password
+              createAt
+              updateAt
+              deletedAt
+              role
+            }
       }
     `,
   }).then((result: any) => {
@@ -215,8 +230,9 @@ async function refreshUserData() {
     let newItem: UserData = {
       id: user.id,
       fields: {
-        name: { oldValue: '', value: '' },
+        // name: { oldValue: '', value: '' },
         email: { oldValue: '', value: '' },
+        password: { oldValue: '', value: '' },
         role: { oldValue: Role.USER, value: Role.USER },
       },
       isNew: false,
@@ -244,14 +260,19 @@ async function refreshUserData() {
 const nameInputValue = ref('');
 const emailInputValue = ref('');
 const selectRoleValue = ref('');
+const passwordInputValue = ref('');
 
-function createNewUser() {
+function createNewUser(): UserData {
   return {
     id: '',
     fields: {
-      name: {
-        oldValue: '',
-      value: nameInputValue.value,
+    //   name: {
+    //     oldValue: '',
+    //   value: nameInputValue.value,
+    // },
+    password: {
+      oldValue: '',
+      value: passwordInputValue.value,
     },
       email: {
         oldValue: '',
@@ -268,7 +289,7 @@ function createNewUser() {
   };
 }
 
-function createUser() {
+function createUser(): boolean {
   try {
     loading.value = true;
 
@@ -281,8 +302,8 @@ function createUser() {
 
     const doNotRepeatUser = rows.value.every(
       (user) =>
-        user.fields.name.value
-        !== NewUser.fields.name.value ||
+        // user.fields.email.value
+        // !== NewUser.fields.name.value ||
         user.fields.email.value
         !== NewUser.fields.email.value
     );
@@ -296,6 +317,7 @@ function createUser() {
     emailInputValue.value = '';
     nameInputValue.value = '';
     selectRoleValue.value = '';
+    passwordInputValue.value = '';
 
     if (nameValue === "" || emailValue === "") {
       rows.value.pop();
@@ -311,10 +333,11 @@ function createUser() {
     console.error(e);
     loading.value = false;
   }
+  return false;
 }
 
 
-async function editUser() {
+async function editUser(): Promise<void> {
   try{
   loading.value = true;
   const oldLoginRow = nameInputValue.value.valueOf()
@@ -338,7 +361,7 @@ function deleteUser() {
   const oldRow = rows.value[0];
 }
 
-async function deleteSelectedUsers() {
+async function deleteSelectedUsers(): Promise<void> {
   loading.value = true;
 
   rows.value = await rows.value.filter((user) => !user.selected);
@@ -351,7 +374,7 @@ async function deleteSelectedUsers() {
   loading.value = false;
 }
 
-function checkNewUser(field: UserField<string>, isNew: boolean) {
+function checkNewUser(field: UserField<string>, isNew: boolean): boolean {
   const checkNewUser = field.oldValue !== field.value
   if (checkNewUser){
     console.log(checkNewUser);
@@ -364,7 +387,7 @@ function checkNewUser(field: UserField<string>, isNew: boolean) {
   return checkOnUserRow
 }
 
-function navigateToSettings() {
+function navigateToSettings(): void {
   router.push({ name: 'Settings' });
 }
 
@@ -404,7 +427,6 @@ const emailRules = [
 .color_form {
   background-color: #303030;
 }
-
 
 .v-table3 {
     padding: 0 150px;

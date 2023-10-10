@@ -8,165 +8,165 @@ const props = defineProps<{ saveData: UserData[] }>();
 const emit = defineEmits(['update:saveData']);
 
 const addUserData = async (data: UserData[]) => {
-  const newUsers = data.filter((value) => value.isNew).map((item) => ({
-    email: item.fields.email.value,
-    login: item.fields.name.value,
-    role: item.fields.role.value
-  }));
+//   const newUsers = data.filter((value) => value.isNew).map((item) => ({
+//     email: item.fields.email.value,
+//     login: item.fields.name.value,
+//     role: item.fields.role.value
+//   }));
 
-  if (!newUsers.length) return data;
+//   if (!newUsers.length) return data;
 
-  const { mutate: sendMessage } = useMutation<MUTATION>(gql`
-    mutation NewUser($users: [NewUserInput!]!){
-        userNew(users: $users){
-          id
-          login
-        }
-      }
-  `);
+//   const { mutate: sendMessage } = useMutation<MUTATION>(gql`
+//     mutation NewUser($users: [NewUserInput!]!){
+//         userNew(users: $users){
+//           id
+//           login
+//         }
+//       }
+//   `);
 
-  try {
-    const result = await sendMessage({
-      users: newUsers
-    });
+//   try {
+//     const result = await sendMessage({
+//       users: newUsers
+//     });
 
-    if (result?.errors) {
-      result.errors.forEach((currentValue) => {
-        console.log(currentValue);
-      });
-      return data;
-    }
+//     if (result?.errors) {
+//       result.errors.forEach((currentValue) => {
+//         console.log(currentValue);
+//       });
+//       return data;
+//     }
 
-    return data.map(elem => {
-      const user = result?.data?.userNew.find(val => elem.fields.name.value == val.login);
-      if (user) {
-        return {
-          ...elem,
-          fields: {
-            ...elem.fields,
-            login: {
-              oldValue: elem.fields.name.value,
-              value: elem.fields.name.value
-            }
-          },
-          id: user.id,
-          isNew: false
-        };
-      }
-      return elem;
-    });
-  } catch (e: any) {
-    console.log(e);
-  }
-  return data;
-}
+//     return data.map(elem => {
+//       const user = result?.data?.userNew.find(val => elem.fields.name.value == val.login);
+//       if (user) {
+//         return {
+//           ...elem,
+//           fields: {
+//             ...elem.fields,
+//             login: {
+//               oldValue: elem.fields.name.value,
+//               value: elem.fields.name.value
+//             }
+//           },
+//           id: user.id,
+//           isNew: false
+//         };
+//       }
+//       return elem;
+//     });
+//   } catch (e: any) {
+//     console.log(e);
+//   }
+//   return data;
+// }
 
-const updateUserData = async () => {
-  const updateUsers = props.saveData.filter((value) => {
-    for (const v of Object.values(value.fields))
-      if (v.oldValue != v.value)
-        return true;
-    return false;
-  })
-    .map((item) => ({
-      id: item.id,
-      login: item.fields.name.value,
-      role: item.fields.role.value
-    }))
+// const updateUserData = async () => {
+//   const updateUsers = props.saveData.filter((value) => {
+//     for (const v of Object.values(value.fields))
+//       if (v.oldValue != v.value)
+//         return true;
+//     return false;
+//   })
+//     .map((item) => ({
+//       id: item.id,
+//       login: item.fields.name.value,
+//       role: item.fields.role.value
+//     }))
 
-  if (updateUsers.length == 0) return props.saveData
+//   if (updateUsers.length == 0) return props.saveData
 
-  const { mutate: sendMessage } = useMutation<MUTATION>(gql`
-    mutation UpdateUser($users: [UpdateUserInput!]!){
-        userUpdate(users: $users){
-          id
-          login
-          role
-        }
-      }
-  `)
+//   const { mutate: sendMessage } = useMutation<MUTATION>(gql`
+//     mutation UpdateUser($users: [UpdateUserInput!]!){
+//         userUpdate(users: $users){
+//           id
+//           login
+//           role
+//         }
+//       }
+//   `)
 
-  try {
-    const result = await sendMessage({
-      users: updateUsers
-    })
+//   try {
+//     const result = await sendMessage({
+//       users: updateUsers
+//     })
 
-    if (result?.errors) {
-      result.errors.forEach(
-        (currentValue) => {
-          console.log(currentValue)
-        }
-      )
-      return props.saveData
-    }
-    return props.saveData.map(elem => {
-      const user = result?.data?.userUpdate.find(val => elem.id == val.id)
-      if (user)
-        return {
-          ...elem, fields: {
-            ...elem.fields, login: {
-              oldValue: elem.fields.name.value,
-              value: elem.fields.name.value
-            },
-            role: {
-              oldValue: elem.fields.role.value,
-              value: elem.fields.role.value
-            }
-          },
-        }
-      return elem;
-    })
-  }
-  catch (e: any) {
-    console.log(e)
-  }
-  return;
-}
+//     if (result?.errors) {
+//       result.errors.forEach(
+//         (currentValue) => {
+//           console.log(currentValue)
+//         }
+//       )
+//       return props.saveData
+//     }
+//     return props.saveData.map(elem => {
+//       const user = result?.data?.userUpdate.find(val => elem.id == val.id)
+//       if (user)
+//         return {
+//           ...elem, fields: {
+//             ...elem.fields, login: {
+//               oldValue: elem.fields.name.value,
+//               value: elem.fields.name.value
+//             },
+//             role: {
+//               oldValue: elem.fields.role.value,
+//               value: elem.fields.role.value
+//             }
+//           },
+//         }
+//       return elem;
+//     })
+//   }
+//   catch (e: any) {
+//     console.log(e)
+//   }
+//   return;
+// }
 
-const deleteUserData = async () => {
-  const deleteUsers = props.saveData.filter((value) => !value.isDelete)
-    .map((item) => ({
-      id: item.id,
-      login: item.fields.name.value,
-      role: item.fields.role.value
-    }))
+// const deleteUserData = async () => {
+//   const deleteUsers = props.saveData.filter((value) => !value.isDelete)
+//     .map((item) => ({
+//       id: item.id,
+//       login: item.fields.name.value,
+//       role: item.fields.role.value
+//     }))
 
-  const { mutate: sendMessage } = useMutation<MUTATION>(gql`
-    mutation DeleteUser($users: [DeleteUserInput!]!){
-        userDelete(users: $users){
-          id
-          login
-          role
-        }
-      }
-  `)
+//   const { mutate: sendMessage } = useMutation<MUTATION>(gql`
+//     mutation DeleteUser($users: [DeleteUserInput!]!){
+//         userDelete(users: $users){
+//           id
+//           login
+//           role
+//         }
+//       }
+//   `)
 
-  try {
-    const result = await sendMessage({
-      users: deleteUsers
-    })
+//   try {
+//     const result = await sendMessage({
+//       users: deleteUsers
+//     })
 
-    if (result?.errors) {
-      result.errors.forEach(
-        (currentValue) => {
-          console.log(currentValue)
-        }
-      )
-      return props.saveData
-    }
-    const deletedUser = result?.data?.userDelete;
-    if (deletedUser && deletedUser.length !== props.saveData.length) {
-      console.error("error: you can't delete all users");
-    }
-  } catch (e: any) {
-    console.log("An error occurred:", e)
-  }
-}
+//     if (result?.errors) {
+//       result.errors.forEach(
+//         (currentValue) => {
+//           console.log(currentValue)
+//         }
+//       )
+//       return props.saveData
+//     }
+//     const deletedUser = result?.data?.userDelete;
+//     if (deletedUser && deletedUser.length !== props.saveData.length) {
+//       console.error("error: you can't delete all users");
+//     }
+//   } catch (e: any) {
+//     console.log("An error occurred:", e)
+//   }
+// }
 
 const saveUserData = async () => {
   const result = await addUserData(props.saveData);
-  await updateUserData();
-  await deleteUserData();
+  // await updateUserData();
+  // await deleteUserData();
   emit('update:saveData', result)
 
   // if (props.saveData) {
@@ -187,6 +187,6 @@ const saveUserData = async () => {
     color="primary"
     size="small"
     class="mr-2"
-    @click="saveUserData"
+
   >Save</v-btn>
 </template>

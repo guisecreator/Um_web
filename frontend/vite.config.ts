@@ -1,18 +1,15 @@
-// Plugins
 import vue from '@vitejs/plugin-vue'
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-
-// Utilities
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
-// https://vitejs.dev/config/
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
 export default defineConfig({
   plugins: [
-    vue({ 
+    vue({
       template: { transformAssetUrls }
     }),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
     vuetify({
       autoImport: true,
       styles: {
@@ -37,5 +34,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      '/graphql': {
+        target: 'http://localhost:8080/query',
+        changeOrigin: true,
+      },
+    },
   },
-})
+});
+

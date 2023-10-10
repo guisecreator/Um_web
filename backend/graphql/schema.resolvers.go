@@ -22,7 +22,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, newUser []*model.NewU
 
 	for userData, _ := range newUser {
 		user := []*model.User{&model.User{
-			Login: newUser[userData].Login,
+			Email: newUser[userData].Email,
 			Role:  newUser[userData].Role,
 		}}
 		if user != nil {
@@ -56,7 +56,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, userUpdate []*model.U
 
 	for userData, _ := range userUpdate {
 		user := []*model.User{&model.User{
-			Login: userUpdate[userData].Login,
+			Email: userUpdate[userData].Email,
 			Role:  userUpdate[userData].Role,
 		}}
 		if user != nil {
@@ -128,10 +128,10 @@ func (r *mutationResolver) Validate(ctx context.Context) (*model.User, error) {
 }
 
 // Me "Me" is the resolver for the "me" field.
-func (r *queryResolver) Me(ctx context.Context, login string) (*model.User, error) {
+func (r *queryResolver) Me(ctx context.Context, email string) (*model.User, error) {
 	user := model.User{}
 
-	bunIn := bun.In(login)
+	bunIn := bun.In(email)
 	scanDb := r.Db.
 		NewSelect().
 		Model(&user).

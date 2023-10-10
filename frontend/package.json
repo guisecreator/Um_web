@@ -19,6 +19,8 @@
     "core-js": "^3.29.0",
     "custom-vue-scrollbar": "^0.0.7",
     "graphql-tag": "^2.12.6",
+    "http-proxy-middleware": "^2.0.6",
+    "js-cookie": "^3.0.5",
     "pinia": "^2.0.0",
     "roboto-fontface": "*",
     "vue": "^3.2.0",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@babel/types": "^7.21.4",
+    "@types/js-cookie": "^3.0.4",
     "@types/node": "^18.15.0",
     "@types/webfontloader": "^1.6.35",
     "@vitejs/plugin-vue": "^4.2.3",
