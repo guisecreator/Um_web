@@ -7,8 +7,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/guisecreator/um_web/db"
 	"github.com/guisecreator/um_web/graphql"
-	middleware "github.com/guisecreator/um_web/pkg/middlewares"
-	"github.com/guisecreator/um_web/pkg/sessions"
+	middleware "github.com/guisecreator/um_web/internal/middlewares"
+	"github.com/guisecreator/um_web/internal/sessions"
 	"github.com/uptrace/bun"
 	"log"
 	"net/http"
@@ -77,7 +77,6 @@ func main() {
 		Resolvers: resolver,
 	}
 
-	graphConfig.Directives.Authenticated = resolver.Authentication
 	srv := CreateServer(graphConfig)
 
 	router.Handle("/", playground.

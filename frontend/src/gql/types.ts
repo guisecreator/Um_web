@@ -58,8 +58,22 @@ export type MutationResult = {
 
 export type User = {
   id: string;
-  role: Role;
-  password: string;
   email: string;
+  password: string;
+  role: string;
+  createAt: string;
+  updateAt: string;
+  deletedAt: string;
 };
+
+export type UserQuery = {
+  GetUser: {
+    // users: User[];
+    users: {
+      id: string;
+      email: string;
+      role: string;
+    }
+  }
+}
 

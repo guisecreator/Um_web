@@ -6,14 +6,11 @@ package graphql
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log"
-	"strconv"
-
 	"github.com/guisecreator/um_web/graphql/model"
-	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/guisecreator/um_web/internal/authpayload"
 	"github.com/uptrace/bun"
+	"log"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -99,32 +96,20 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, userDelete []string) 
 
 // Validate is the resolver for the validate field.
 func (r *mutationResolver) Validate(ctx context.Context) (*model.User, error) {
-	user := model.User{}
+	var errDefault = fmt.Errorf("нет сессии")
 
-	sessionKey := authpayload.
-		ForContext(ctx).AuthInfo.Token
-	if sessionKey == "" {
-		return nil, errors.New("access is denied")
+	sessionKey, errToken := authpayload.GetSessionTokenFromContext(ctx)
+	if errToken != nil {
+		return nil, errDefault
 	}
 
-	session, found := r.Sessions.
-		GetSession(sessionKey)
-	if !found {
-		return nil, errors.New("no session for key")
+	data, ok := r.Sessions.GetSession(sessionKey)
+	if !ok {
+		return nil, errDefault
 	}
 
-	if err := session.PrivateKey.Validate(); err != nil {
-		return nil, err
-	}
-
-	Id := strconv.Itoa(len(session.Id))
-
-	user = model.User{
-		ID:   Id,
-		Role: model.Roles(model.RolesUser),
-	}
-
-	return &user, nil
+	id := data.Id
+	return &model.User{ID: id, Email: data.Name, Role: data.Roles}, nil
 }
 
 // Me "Me" is the resolver for the "me" field.

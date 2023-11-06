@@ -4,18 +4,44 @@ import (
 	"errors"
 	"fmt"
 	"github.com/guisecreator/um_web/graphql/model"
-	"github.com/guisecreator/um_web/pkg/authpayload"
+	"github.com/guisecreator/um_web/internal/authpayload"
 	"log"
 	"net/http"
 )
-
-type HandleAuthHTTPFunc func(w http.ResponseWriter, r *http.Request) (*http.Request, error)
 
 func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(nextHttp http.Handler) http.Handler {
 		return http.HandlerFunc(
 			func(responseWriter http.ResponseWriter, request *http.Request) {
 				ctx := request.Context()
+
+				//			header := r.Header.Get("Authorization")
+				//			if header == "" {
+				//				http.Error(w, "Invalid token", http.StatusForbidden)
+				//				return
+				//			}
+				//
+				//			logRequest(w, r)
+				//
+				//			tokenStr := header
+				//			username, err := token.ParseToken(tokenStr)
+				//			if err != nil {
+				//				http.Error(w, "Invalid token", http.StatusForbidden)
+				//				return
+				//			}
+
+				//			user := model.User{}
+				//			user.Role = model.Roles(cookie.Value)
+				//
+				//			if user.Role != model.RolesAdmin {
+				//				http.Error(w, "User does not have admin role", http.StatusForbidden)
+				//				log.Printf("User %s does not have admin role", user.Email)
+				//				return
+				//			}
+				//
+				//			auth := model.AuthInfo{}
+				//			auth.Token = username
+				//
 
 				payload := authpayload.AuthPayload{
 					ResponseWriter: responseWriter,

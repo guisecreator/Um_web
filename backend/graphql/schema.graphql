@@ -16,7 +16,7 @@ type User {
     role: Roles!
 }
 
-type Query {
+type UserQuery {
 	me(email: String!): User @authenticated
 	users: [User!] @authenticated
 	authenticatedQuery: SomeType! @authenticated

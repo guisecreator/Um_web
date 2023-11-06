@@ -5,11 +5,9 @@ import (
 	"errors"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/guisecreator/um_web/graphql/model"
-	"github.com/guisecreator/um_web/pkg/authpayload"
-	"github.com/guisecreator/um_web/pkg/token"
-	"github.com/vektah/gqlparser/v2/gqlerror"
+	"github.com/guisecreator/um_web/internal/authpayload"
+	"github.com/guisecreator/um_web/internal/token"
 	"log"
-	"time"
 )
 
 func CheckAuthorization(ctx context.Context,
@@ -60,8 +58,10 @@ func (r *Resolver) HasRole(
 }
 
 func (r *Resolver) Authentication(
-	ctx context.Context, _ interface{},
-	next graphql.Resolver) (interface{}, error) {
+	ctx context.Context,
+	_ interface{},
+	next graphql.Resolver,
+) (interface{}, error) {
 	authenticationError := errors.New("access is denied")
 
 	auth := authpayload.ForContext(ctx)
@@ -94,29 +94,13 @@ func (r *Resolver) Authentication(
 		return nil, authenticationError
 	}
 
-	tokenJSON, err := token.PullTokenFromJSON(auth.Token)
+	tokenJWT, err := token.GenerateToken(session.Login.ID)
 	if err != nil {
 		log.Println("Token error from JSON -", err)
 		return nil, authenticationError
 	}
 
-	claims, err := token.
-		DecryptBytes(tokenJSON, session.PrivateKey)
-	if err != nil {
-		log.Println("Decrypt error -", err)
-		return nil, authenticationError
-	}
-
-	if claims.Expired < time.Now().Unix() {
-		log.Printf("Token expired for %v [%v]\n",
-			claims.Id, time.Unix(claims.Expired, 0))
-		return nil, &gqlerror.Error{
-			Message: "Your session has expired. Please re-login",
-			Extensions: map[string]interface{}{
-				"code": "expired",
-			},
-		}
-	}
+	auth.AuthInfo.Token = tokenJWT
 
 	return next(ctx)
 }

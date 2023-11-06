@@ -29,8 +29,16 @@
           variant="elevated"
           icon="refresh"
           @click="refreshUserData"
-          >
-          </v-btn>
+          ></v-btn>
+          <v-btn
+          color="yellow"
+          size="small"
+          type="submit"
+          class="mr-2"
+          variant="elevated"
+          icon="check"
+          @click="cookiesCheck"
+          ></v-btn>
           <SaveButton v-model:saveData="rows" @update:saveData="onSaved"></SaveButton>
           <v-dialog v-model="createDialog" persistent width="1024">
             <template v-slot:activator="{ props }">
@@ -149,10 +157,12 @@ import 'custom-vue-scrollbar/dist/style.css';
 import { ref, Ref, onMounted, computed  } from 'vue';
 import { UserData, UserDataFields, UserField, UserDataKey} from '@/types/types';
 import { useRouter } from 'vue-router';
-import { User, Role } from '@/gql/types';
+import { User, Role, UserQuery } from '@/gql/types';
 import gql from 'graphql-tag';
 import { useApolloClient } from '@vue/apollo-composable';
 import { createApolloClient } from '@/apollo/apollo';
+import Cookies from 'js-cookie';
+import { ApolloError } from '@apollo/client/errors';
 // import SaveButton from '@/components/users/save_button.vue';
 
 
@@ -191,6 +201,13 @@ const isSelectedUser = () => {
   return selected.value
 };
 
+function cookiesCheck() {
+  const cookieCheck = JSON.stringify(Cookies.get());
+  console.log(JSON.stringify(cookieCheck));
+  router.push({ name: 'Index' })
+  return cookieCheck;
+}
+
 onMounted(() => {
   refreshUserData()
 })
@@ -198,62 +215,67 @@ onMounted(() => {
 async function refreshUserData(): Promise<void> {
   loading.value = true;
   try{
-    const serverResult: any = await apolloClient.client.query({
-    query: gql`
-      query {
-        user {
+    const serverResult = await apolloClient.client.query<UserQuery>({
+    query: gql` query GetUsers{
+       users {
               id
               email
               password
-              createAt
-              updateAt
-              deletedAt
               role
-            }
-      }
+        }
+    }
     `,
-  }).then((result: any) => {
-    rows.value = result.data.users;
-  });
+    fetchPolicy: 'network-only',
+  })
+  // .then((result) => {
+  //   rows.value = result.data.GetUser;
+  // });
 
-  if (!serverResult.data.users){
-    console.log(serverResult.data.users);
-    return;
-  }
+//   if (!serverResult || !serverResult.data.users) {
+//   console.log("No user data available");
+//   return;
+// }
 
-  const users = serverResult.data.users;
+  const users = rows.value;
   if (!users){
     console.log(users);
     return;
   }
-  rows.value = users.map((user: any) => {
+  rows.value = users.map((user) => {
     let newItem: UserData = {
       id: user.id,
       fields: {
-        // name: { oldValue: '', value: '' },
         email: { oldValue: '', value: '' },
         password: { oldValue: '', value: '' },
         role: { oldValue: Role.USER, value: Role.USER },
+        createAt: { oldValue: '', value: '' },
+        updateAt: { oldValue: '', value: '' },
+        deletedAt: { oldValue: '', value: '' },
       },
       isNew: false,
       isDelete: false,
       selected: false
     };
+
     Object.keys(user).forEach((key) => {
       const fieldKeys = key as keyof UserDataKey;
-      if (fieldKeys in newItem.fields) {
-        const val: any = users.item[fieldKeys];
-        newItem.fields[fieldKeys] = val as UserField<typeof val>
-          console.log(newItem.fields[fieldKeys]);
-        }
+
+      // if (fieldKeys in newItem.fields) {
+      //   const val = users.item[fieldKeys];
+
+      //   newItem.fields[fieldKeys] = val as UserField<typeof val>
+
+      //   const newitem = newItem.fields[fieldKeys];
+      //     console.log(newitem);
+      //   }
       });
 
       return newItem;
     });
   }
   catch(e){
-    loading.value = false;
     console.log(e);
+    loading.value = false;
   }
 }
 
@@ -281,6 +303,18 @@ function createNewUser(): UserData {
       role: {
         oldValue: Role.USER,
         value: selectRoleValue.value,
+       },
+      createAt: {
+        oldValue: '',
+        value: '',
+       },
+      updateAt: {
+        oldValue: '',
+        value: '',
+       },
+      deletedAt: {
+        oldValue: '',
+        value: '',
        },
     },
     isNew: true,

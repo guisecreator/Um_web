@@ -58,7 +58,7 @@ func InitBunDb() *bun.DB {
 func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 	return &cli.Command{
 		Name:  "db",
-		Usage: "database migrations",
+		Usage: "db migrations",
 		Subcommands: []*cli.Command{
 			{
 				Name:  "init",
@@ -69,7 +69,7 @@ func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 			},
 			{
 				Name:  "migrate",
-				Usage: "migrate database",
+				Usage: "migrate db",
 				Action: func(c *cli.Context) error {
 					if err := migrator.Lock(c.Context); err != nil {
 						return err
@@ -81,7 +81,7 @@ func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 						return err
 					}
 					if group.IsZero() {
-						fmt.Printf("there are no new migrations to run (database is up to date)\n")
+						fmt.Printf("there are no new migrations to run (db is up to date)\n")
 						return nil
 					}
 					fmt.Printf("migrated to %s\n", group)

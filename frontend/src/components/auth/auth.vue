@@ -40,6 +40,17 @@
           {{ hasError ? 'Error' : (isSuccess ? 'Success' : 'Join') }}
           </v-btn>
         </v-card-actions>
+        <v-card-actions class="justify-center">
+          <br />
+            <v-btn
+          block color="yellow"
+          size="large"
+          variant="elevated"
+          @click="cookiesCheck"
+          >
+          Cookies check
+          </v-btn>
+        </v-card-actions>
       </v-form>
     </v-card>
   </div>
@@ -95,11 +106,15 @@ const serverConnected = ref(true);
 const isSuccess = ref(false);
 const hasError = ref(false);
 
+function cookiesCheck() {
+  const cookieCheck = JSON.stringify(Cookies.get());
+  console.log(JSON.stringify(cookieCheck));
+  router.push({ name: 'Index' })
+  return cookieCheck;
+}
 
 async function onSubmit() {
   loading.value = true;
-  const cookie = Cookies.get('auth_cookie');
-
   try {
     const responseData = await apolloClient.client.mutate<LOGIN_MUTATION>({
       mutation: gql`
@@ -125,23 +140,30 @@ async function onSubmit() {
         password: password.value,
       },
     });
-
-    console.log(responseData);
-    const role = responseData?.data?.login?.user?.role;
-    userStore.Login(role as Role);
-
     const authToken = responseData?.data?.login?.info?.Token;
-    console.log(authToken);
 
-    const setCookie = Cookies.set('auth_cookie', authToken, {
-      expires: 7, path: '/', sameSite: 'lax', secure: false });
+    if (authToken) {
+      console.log(authToken);
+      console.log(responseData);
+
+      const setCookie = Cookies.set('auth_cookie', authToken, {
+        expires: 7,
+        path: '/',
+        sameSite: 'none',
+        secure: true,
+    });
+
     if (!setCookie) {
       hasError.value = true;
       loading.value = false;
-      console.log("coockies not set");
+      console.log("Cookies not set");
       return;
     }
-
+  } else {
+      console.log("No auth token received from the server");
+  }
+    const role = responseData?.data?.login?.user?.role;
+    userStore.Login(role as Role);
     router.push({ name: 'Index' });
     isSuccess.value = true;
   } catch (e) {
